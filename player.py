@@ -17,6 +17,10 @@ class Player(pygame.sprite.Sprite):
         self.rect.y = pos_y
         self.max_height = screen.get_height()
         self.max_width = screen.get_width()
+        # debug
+        # print "x= %s" % self.rect.x
+        # print "y= %s" % self.rect.y
+
 
     def change_sppeed(self, x, y):
         self.change_x = x

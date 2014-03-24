@@ -1,0 +1,10 @@
+{
+  "level_name": "Herz aus Gold",
+  "base_clock": 100,
+  "lives": 1,
+  "play_field": [
+    [0, 300],
+    [10, 300],
+    [200, 100]
+  ]
+}

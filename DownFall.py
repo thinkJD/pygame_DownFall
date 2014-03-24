@@ -6,6 +6,8 @@ import pygame, sys, os
 from pygame.locals import *
 from player import *
 from wall_ import *
+import json
+from os import path
 
 # constants
 # General
@@ -27,23 +29,28 @@ class Downfall(object):
     screen = None
     # sounds
     sound_death = None
+    level = None
+    lives_count = 0
 
-    def __init__(self, screen):
+
+    def __init__(self, screen, path_level):
         self.screen = screen
+        self.path_level = path_level
+        # load level file
+        self.load_level(path_level)
+
         self.clock = pygame.time.Clock()
         self.all_sprites = pygame.sprite.Group()
         self.enemy_sprites = pygame.sprite.Group()
 
         self.player = Player(screen, 100, 100)
         self.all_sprites.add(self.player)
-        tmp_wall = Wall(self.screen, 5)
+        tmp_wall = Wall(self.screen, 10, 100, 300, 30)
         self.enemy_sprites.add(tmp_wall)
         self.all_sprites.add(tmp_wall)
 
         # load sounds
         self.sound_death = pygame.mixer.Sound("./Sound/sfx/Drop.wav")
-
-        self.sound_music.play()
 
 
     def checkEvents(self):
@@ -60,18 +67,46 @@ class Downfall(object):
             pygame.event.post(pygame.event.Event(pygame.QUIT))
 
     def update(self):
+        # read Input data from keyboard
+        self.checkKeys()
+        # call update() on all sprites in list
         self.all_sprites.update()
+        # check collitions between player and enemy sprites
         collision_list = pygame.sprite.spritecollide(self.player, self.enemy_sprites, True)
+        # if a collition is detected, handle player death
         if len(collision_list) > 0:
-            self.sound_death.play()
+            print "Collision detected"
+            if self.level['lives'] > 0:
+                self.level['lives'] -= 1
+                print "Remaining lives: %s" % self.level['lives']
+            else:
+                # game over
+                self.sound_death.play()
+                pygame.event.post(pygame.event.Event(pygame.QUIT))
+        # draw all sprites (not just enemy sprites)
         self.all_sprites.draw(self.screen)
+
+    def load_level(self, path):
+        path_level_file = os.path.join(path, "level.json")
+        level_file = open(path_level_file, 'r')
+        self.level = json.load(level_file)
+        self.lives_count = self.level['lives']
+
+        # debug
+        print "Level Information:"
+        print "  level_name : %s" % self.level['level_name']
+        print "  base_clock : %s" % self.level['base_clock']
+        print "  lives : %s" % self.level['lives']
+        print "  play_field: %s" % self.level['play_field']
+        print "end Level Information"
+
 
 
 def main():
     pygame.init()
     screen = pygame.display.set_mode(cScreenSize)
     pygame.display.set_caption("Downfall")
-    game = Downfall(screen)
+    game = Downfall(screen, "./Level/Level_1/")
     running = True
 
     while running:
@@ -79,7 +114,6 @@ def main():
 
         # Limit frame rate to 30 FPS
         game.clock.tick(30)
-        game.checkKeys()
         # Draw game screen
         screen.fill(cColorSkyBlue)
         game.update()
