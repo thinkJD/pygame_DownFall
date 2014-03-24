@@ -1,6 +1,3 @@
-# My first Python Game
-# Its called Downfall, a brick with a specific (changable) shape muss be rotate and translated to fit a hole.
-
 # imports
 import pygame, sys, os
 from pygame.locals import *
@@ -31,6 +28,7 @@ class Downfall(object):
     sound_death = None
     level = None
     lives_count = 0
+    bar_count = 0
 
 
     def __init__(self, screen, path_level):
@@ -45,9 +43,6 @@ class Downfall(object):
 
         self.player = Player(screen, 100, 100)
         self.all_sprites.add(self.player)
-        tmp_wall = Wall(self.screen, 10, 100, 300, 30)
-        self.enemy_sprites.add(tmp_wall)
-        self.all_sprites.add(tmp_wall)
 
         # load sounds
         self.sound_death = pygame.mixer.Sound("./Sound/sfx/Drop.wav")
@@ -66,14 +61,10 @@ class Downfall(object):
             # fire QUIT event
             pygame.event.post(pygame.event.Event(pygame.QUIT))
 
-    def update(self):
-        # read Input data from keyboard
-        self.checkKeys()
-        # call update() on all sprites in list
-        self.all_sprites.update()
-        # check collitions between player and enemy sprites
+    def handle_collision(self):
+        # check collision between player and enemy sprites
         collision_list = pygame.sprite.spritecollide(self.player, self.enemy_sprites, True)
-        # if a collition is detected, handle player death
+        # if a collision is detected, handle player death
         if len(collision_list) > 0:
             print "Collision detected"
             if self.level['lives'] > 0:
@@ -83,6 +74,37 @@ class Downfall(object):
                 # game over
                 self.sound_death.play()
                 pygame.event.post(pygame.event.Event(pygame.QUIT))
+
+    def draw_walls(self):
+        draw_wall = False
+        # first run
+        if len(self.enemy_sprites) == 0:
+            draw_wall = True
+        else:
+            # calculate distance to the nearest sprite
+            near_sprite = max(self.enemy_sprites, key=lambda w: w.rect.bottom)
+            # if the distance is greater the clock, set a flag
+            if self.screen.get_height() - near_sprite.rect.bottom >= self.level['base_clock']:
+                draw_wall = True
+        # if draw_wall is set do it
+        if draw_wall and self.bar_count < len(self.level['play_field']):
+            wall_info = list(self.level['play_field'][self.bar_count])
+            self.bar_count += 1
+            tmp_wall = Wall(self.screen, 10, wall_info[0], wall_info[1], 10)
+            self.enemy_sprites.add(tmp_wall)
+            self.all_sprites.add(tmp_wall)
+
+    def update(self):
+        # read Input data from keyboard
+        self.checkKeys()
+        # draw walls if needed
+        self.draw_walls()
+        # call update() on all sprites in list
+        self.all_sprites.update()
+        # handle collisions
+        self.handle_collision()
+        # draw sky
+        self.screen.fill(cColorSkyBlue)
         # draw all sprites (not just enemy sprites)
         self.all_sprites.draw(self.screen)
 
@@ -101,7 +123,6 @@ class Downfall(object):
         print "end Level Information"
 
 
-
 def main():
     pygame.init()
     screen = pygame.display.set_mode(cScreenSize)
@@ -111,14 +132,11 @@ def main():
 
     while running:
         running = game.checkEvents()
-
         # Limit frame rate to 30 FPS
         game.clock.tick(30)
         # Draw game screen
-        screen.fill(cColorSkyBlue)
         game.update()
         pygame.display.flip()
-
     # clean up
     pygame.quit()
 

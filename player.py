@@ -2,8 +2,8 @@ import pygame
 
 class Player(pygame.sprite.Sprite):
     screen = None
-    change_x = 10
-    change_y = 10
+    change_x = 20
+    change_y = 20
     max_height = 0
     max_width = 0
     movement = "undefined"
@@ -38,6 +38,3 @@ class Player(pygame.sprite.Sprite):
                 self.rect.x += self.change_y
             else:
                 self.rect.x = self.max_width - self.rect.width
-
-
-
