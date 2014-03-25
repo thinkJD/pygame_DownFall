@@ -68,7 +68,6 @@ class Downfall(object):
         collision_list = pygame.sprite.spritecollide(self.player, self.enemy_sprites, True)
         # if a collision is detected, handle player death
         if len(collision_list) > 0:
-            print "Collision detected"
             self.score_counter.update_text("Ruuums!")
             self.score_counter.update_color([255, 255, 255])
             if self.level['lives'] > 0:
@@ -88,12 +87,13 @@ class Downfall(object):
             # calculate distance to the nearest sprite
             near_sprite = max(self.enemy_sprites, key=lambda w: w.rect.bottom)
             # if the distance is greater the clock, set a flag
-            if self.screen.get_height() - near_sprite.rect.bottom >= self.level['base_clock']:
+            if self.screen.get_height() - near_sprite.rect.bottom >= self.level['next_wall']:
                 draw_wall = True
         # if draw_wall is set do it
         if draw_wall and self.bar_count < len(self.level['play_field']):
             wall_info = list(self.level['play_field'][self.bar_count])
             self.bar_count += 1
+            self.level['next_wall'] = wall_info[2]
             tmp_wall = Wall(self.screen, 10, wall_info[0], wall_info[1], 10)
             self.enemy_sprites.add(tmp_wall)
             self.all_sprites.add(tmp_wall)
@@ -120,7 +120,7 @@ class Downfall(object):
         # debug
         print "Level Information:"
         print "  level_name : %s" % self.level['level_name']
-        print "  base_clock : %s" % self.level['base_clock']
+        print "  next_wall : %s" % self.level['next_wall']
         print "  lives : %s" % self.level['lives']
         print "  play_field: %s" % self.level['play_field']
         print "end Level Information"
