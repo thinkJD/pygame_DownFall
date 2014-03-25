@@ -18,6 +18,7 @@ class Player(pygame.sprite.Sprite):
         base_path = os.path.dirname(__file__)
         self.image_player_right = pygame.image.load(os.path.join(base_path, "Graphics/", "player_right.png"))
         self.image_player_left = pygame.image.load(os.path.join(base_path, "Graphics/", "player_left.png"))
+        self.image_player_death = pygame.image.load(os.path.join(base_path, "Graphics/", "player_death.png"))
         self.image = self.image_player_left
         self.rect = self.image.get_rect()
         self.rect.x = pos_x
@@ -32,6 +33,9 @@ class Player(pygame.sprite.Sprite):
     def change_sppeed(self, x, y):
         self.change_x = x
         self.change_y = y
+
+    def player_death(self):
+        self.image = self.image_player_death
 
     def update(self):
         key = pygame.key.get_pressed()

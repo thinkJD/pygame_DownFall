@@ -46,7 +46,8 @@ class Downfall(object):
         self.all_sprites.add(self.player)
 
         # load sounds
-        self.sound_death = pygame.mixer.Sound("./Sound/sfx/Drop.wav")
+        path_death_sound = os.path.join(os.path.dirname(__file__), "Sound/", "sfx/", "Drop.wav")
+        self.sound_death = pygame.mixer.Sound(path_death_sound)
         self.score_counter = Text("Don't Panic!", 70, 50, 50, cColorOrange)
         self.all_sprites.add(self.score_counter)
 
@@ -54,6 +55,7 @@ class Downfall(object):
         # handle QUIT event
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                pygame.time.wait(1000)
                 return False
         return True
 
@@ -69,34 +71,43 @@ class Downfall(object):
         # if a collision is detected, handle player death
         if len(collision_list) > 0:
             self.score_counter.update_text("Ruuums!")
+            self.sound_death.play()
             self.score_counter.update_color([255, 255, 255])
             if self.level['lives'] > 0:
                 self.level['lives'] -= 1
                 print "Remaining lives: %s" % self.level['lives']
             else:
                 # game over
-                self.sound_death.play()
+                self.player.player_death()
                 pygame.event.post(pygame.event.Event(pygame.QUIT))
 
     def draw_walls(self):
         draw_wall = False
         # first run
         if len(self.enemy_sprites) == 0:
-            draw_wall = True
+            self.draw_wall()
         else:
             # calculate distance to the nearest sprite
             near_sprite = max(self.enemy_sprites, key=lambda w: w.rect.bottom)
-            # if the distance is greater the clock, set a flag
+            # if the distance is greater than next walls distance
             if self.screen.get_height() - near_sprite.rect.bottom >= self.level['next_wall']:
-                draw_wall = True
+                self.draw_wall()
+
+    def draw_wall(self):
         # if draw_wall is set do it
-        if draw_wall and self.bar_count < len(self.level['play_field']):
+        if self.bar_count < len(self.level['play_field']):
+            print "draw a wall"
+            # get next wall_info list
             wall_info = list(self.level['play_field'][self.bar_count])
             self.bar_count += 1
+            print wall_info
             self.level['next_wall'] = wall_info[2]
             tmp_wall = Wall(self.screen, 10, wall_info[0], wall_info[1], 10)
             self.enemy_sprites.add(tmp_wall)
             self.all_sprites.add(tmp_wall)
+            if wall_info[2] == 0:
+                print "0 Distance, draw next wall"
+                self.draw_wall()
 
     def update(self):
         # read Input data from keyboard
