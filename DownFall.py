@@ -3,6 +3,8 @@ import pygame, sys, os
 from pygame.locals import *
 from player import *
 from wall_ import *
+from text import *
+
 import json
 from os import path
 
@@ -27,9 +29,8 @@ class Downfall(object):
     # sounds
     sound_death = None
     level = None
-    lives_count = 0
     bar_count = 0
-
+    score_counter = None
 
     def __init__(self, screen, path_level):
         self.screen = screen
@@ -46,7 +47,8 @@ class Downfall(object):
 
         # load sounds
         self.sound_death = pygame.mixer.Sound("./Sound/sfx/Drop.wav")
-
+        self.score_counter = Text("Don't Panic!", 70, 50, 50, cColorOrange)
+        self.all_sprites.add(self.score_counter)
 
     def checkEvents(self):
         # handle QUIT event
@@ -67,6 +69,8 @@ class Downfall(object):
         # if a collision is detected, handle player death
         if len(collision_list) > 0:
             print "Collision detected"
+            self.score_counter.update_text("Ruuums!")
+            self.score_counter.update_color([255, 255, 255])
             if self.level['lives'] > 0:
                 self.level['lives'] -= 1
                 print "Remaining lives: %s" % self.level['lives']
@@ -112,7 +116,6 @@ class Downfall(object):
         path_level_file = os.path.join(path, "level.json")
         level_file = open(path_level_file, 'r')
         self.level = json.load(level_file)
-        self.lives_count = self.level['lives']
 
         # debug
         print "Level Information:"
