@@ -1,5 +1,7 @@
 import pygame
+
 import dumbmenu as dm
+
 pygame.init()
 
 # Just a few static variables
@@ -13,12 +15,7 @@ screen.fill(blue)
 pygame.display.update()
 pygame.key.set_repeat(500,30)
 
-choose = dm.dumbmenu(screen, [
-                        'Start Game',
-                        'Options',
-                        'Manual',
-                        'Show Highscore',
-                        'Quit Game'], 64,64,None,32,1.4,green,red)
+choose = dm.dumbmenu(screen, ['Start Game', 'Quit Game'], 64, 64, None, 32, 1.4, green, red)
 
 if choose == 0:
     print "You choose 'Start Game'."

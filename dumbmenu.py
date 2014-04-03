@@ -75,7 +75,7 @@ def dumbmenu(screen, menu, x_pos = 100, y_pos = 100, font = None,
 	Script will be haltet until the User makes a decision or a event
 	called pygame.QUIT() will be raised.
 	
-	The User kann pressed directly a Key from 1 to 9 to take the choice.
+	The User can pressed directly a Key from 1 to 9 to take the choice.
 	Another Method is pressing the UP-/DOWN-Key and take the choice with
 	RETURN. Every single Menupoint will get a Number, beginning with 1.
 	

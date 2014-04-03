@@ -1,12 +1,11 @@
-# imports
-import pygame, sys, os
-from pygame.locals import *
+import os
+import pygame
+import dumbmenu as dm
 from player import *
 from wall_ import *
 from text import *
 
 import json
-from os import path
 
 # constants
 # General
@@ -17,20 +16,23 @@ cColorWhite = (255, 255, 255)
 cColorSkyBlue = (135, 206, 250)
 cColorOrange = (255, 165, 0)
 
+
 class Downfall(object):
     # member
     clock = None
     running = False
     player = None
     all_Sprites = None
+    level = None
     enemy_sprites = None
     score = 0
     screen = None
     # sounds
     sound_death = None
-    level = None
+    sound_level = None
     bar_count = 0
     score_counter = None
+    direction = "left"
 
     def __init__(self, screen, path_level):
         self.screen = screen
@@ -44,14 +46,36 @@ class Downfall(object):
 
         self.player = Player(screen, 100, 100)
         self.all_sprites.add(self.player)
+        self.score_counter = Text("Lives: ", 40, 10, 10, cColorOrange)
 
         # load sounds
-        path_death_sound = os.path.join(os.path.dirname(__file__), "Sound/", "sfx/", "Drop.wav")
-        self.sound_death = pygame.mixer.Sound(path_death_sound)
-        self.score_counter = Text("Don't Panic!", 70, 50, 50, cColorOrange)
         self.all_sprites.add(self.score_counter)
 
-    def checkEvents(self):
+    def load_level(self, path):
+        path_level_file = os.path.join(path, "level.json")
+        level_file = open(path_level_file, 'r')
+        self.level = json.load(level_file)
+        self.sound_level = pygame.mixer.Sound(os.path.join(path, "Track1.mp3"))
+
+        # debug
+        print "Level Information:"
+        print "  level_name : %s" % self.level['level_name']
+        print "  next_wall : %s" % self.level['next_wall']
+        print "  lives : %s" % self.level['lives']
+        print "  play_field: %s" % self.level['play_field']
+        print "end Level Information"
+
+    def check_keys(self):
+        pygame.event.pump()
+        key = pygame.key.get_pressed()
+        if key[pygame.K_RIGHT]:
+            self.player.go_right()
+        if key[pygame.K_LEFT]:
+            self.player.go_left()
+        if key[pygame.K_ESCAPE]:
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
+
+    def check_events(self):
         # handle QUIT event
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -59,30 +83,21 @@ class Downfall(object):
                 return False
         return True
 
-    def checkKeys(self):
-        key = pygame.key.get_pressed()
-        if key[pygame.K_ESCAPE]:
-            # fire QUIT event
-            pygame.event.post(pygame.event.Event(pygame.QUIT))
-
     def handle_collision(self):
         # check collision between player and enemy sprites
         collision_list = pygame.sprite.spritecollide(self.player, self.enemy_sprites, True)
         # if a collision is detected, handle player death
         if len(collision_list) > 0:
-            self.score_counter.update_text("Ruuums!")
-            self.sound_death.play()
+            self.player.player_hit()
             self.score_counter.update_color([255, 255, 255])
             if self.level['lives'] > 0:
                 self.level['lives'] -= 1
                 print "Remaining lives: %s" % self.level['lives']
             else:
                 # game over
-                self.player.player_death()
                 pygame.event.post(pygame.event.Event(pygame.QUIT))
 
     def draw_walls(self):
-        draw_wall = False
         # first run
         if len(self.enemy_sprites) == 0:
             self.draw_wall()
@@ -110,47 +125,41 @@ class Downfall(object):
                 self.draw_wall()
 
     def update(self):
-        # read Input data from keyboard
-        self.checkKeys()
-        # draw walls if needed
+        self.check_keys()
         self.draw_walls()
-        # call update() on all sprites in list
         self.all_sprites.update()
-        # handle collisions
         self.handle_collision()
-        # draw sky
         self.screen.fill(cColorSkyBlue)
-        # draw all sprites (not just enemy sprites)
+        self.score_counter.update_text("Lives: " + str(self.level["lives"]))
         self.all_sprites.draw(self.screen)
-
-    def load_level(self, path):
-        path_level_file = os.path.join(path, "level.json")
-        level_file = open(path_level_file, 'r')
-        self.level = json.load(level_file)
-
-        # debug
-        print "Level Information:"
-        print "  level_name : %s" % self.level['level_name']
-        print "  next_wall : %s" % self.level['next_wall']
-        print "  lives : %s" % self.level['lives']
-        print "  play_field: %s" % self.level['play_field']
-        print "end Level Information"
 
 
 def main():
     pygame.init()
     screen = pygame.display.set_mode(cScreenSize)
     pygame.display.set_caption("Downfall")
-    game = Downfall(screen, "./Level/Level_1/")
-    running = True
 
-    while running:
-        running = game.checkEvents()
-        # Limit frame rate to 30 FPS
-        game.clock.tick(30)
-        # Draw game screen
-        game.update()
-        pygame.display.flip()
+    screen.fill(cColorBlack)
+    decision = dm.dumbmenu(screen, ["Start", "Help", "Quit Game"], 70, 70, None, 32, 1.4, cColorWhite, cColorOrange )
+
+    if decision == 0:
+        game = Downfall(screen, "./Level/Level_1/")
+        running = True
+
+        while running:
+            running = game.check_events()
+            # Limit frame rate to 30 FPS
+            game.clock.tick(30)
+            # Draw game screen
+            game.update()
+            pygame.display.flip()
+
+    elif decision == 1:
+        print "looool als ob"
+
+    elif decision == 2:
+        print "Quit Game"
+
     # clean up
     pygame.quit()
 
